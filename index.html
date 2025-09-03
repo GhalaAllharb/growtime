@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrowTime</title>
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2e8b57"/>
+
+  <style>
+    body {
+      font-family: "Tajawal", sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      padding: 20px;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    .timer-box {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 400px;
+    }
+    label {
+      font-size: 1.1em;
+      display: block;
+      margin: 15px 0 5px;
+    }
+    input {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #2e8b57;
+      border: none;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover {
+      background: #256d45;
+    }
+    .circle {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 8px solid #2e8b57;
+      margin: 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      font-weight: bold;
+    }
+    footer {
+      margin-top: 20px;
+      font-size: 0.9em;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <header>🌱 GrowTime — ازرع وقتك واحصد إنجازاتك</header>
+
+  <div class="timer-box">
+    <label for="duration">اختر مدة الجلسة:</label>
+    <input type="range" id="duration" min="5" max="120" value="25" step="5" oninput="updateLabel()">
+    <div id="duration-label">25 دقيقة</div>
+
+    <label for="task">ما الذي ستُنجزه الآن؟ (اختياري)</label>
+    <input type="text" id="task" placeholder="مثال: مذاكرة / مراجعة / واجب">
+
+    <div class="circle" id="timer">25:00</div>
+
+    <button onclick="startSession()">ابدأ الجلسة</button>
+    <button onclick="resetSession()">إعادة</button>
+  </div>
+
+  <footer id="quote">المستقبل لا يُختار، بل يُصنع بعاداتك 🌟</footer>
+
+  <script>
+    let timerInterval;
+    let timeLeft = 25 * 60;
+
+    function updateLabel() {
+      const val = document.getElementById("duration").value;
+      document.getElementById("duration-label").textContent = val + " دقيقة";
+      document.getElementById("timer").textContent = val + ":00";
+      timeLeft = val * 60;
+    }
+
+    function startSession() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("🎉 مبروك! أنجزت جلستك.\nاستمر — ازرع وقتك، واحصد إنجازاتك!");
+        } else {
+          timeLeft--;
+          const minutes = Math.floor(timeLeft / 60);
+          const seconds = timeLeft % 60;
+          document.getElementById("timer").textContent =
+            (minutes < 10 ? "0" : "") + minutes + ":" +
+            (seconds < 10 ? "0" : "") + seconds;
+        }
+      }, 1000);
+    }
+
+    function resetSession() {
+      clearInterval(timerInterval);
+      const val = document.getElementById("duration").value;
+      timeLeft = val * 60;
+      document.getElementById("timer").textContent = val + ":00";
+    }
+
+    // تسجيل Service Worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>
+{
+  "name": "GrowTime",
+  "short_name": "GrowTime",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1e3c72",
+  "theme_color": "#2e8b57",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+self.addEventListener("install", e => {
+  e.waitUntil(
+    caches.open("growtime-cache").then(cache => {
+      return cache.addAll([
+        "index.html",
+        "manifest.json",
+        "icon-192.png",
+        "icon-512.png"
+      ]);
+    })
+  );
+});
+
+self.addEventListener("fetch", e => {
+  e.respondWith(
+    caches.match(e.request).then(response => {
+      return response || fetch(e.request);
+    })
+  );
+});
