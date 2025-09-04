@@ -1,139 +1,242 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GrowTime</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GrowTime — ازرع وقتك واحصد إنجازاتك</title>
 
-  <!-- PWA manifest -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2e8b57"/>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#16a34a"/>
 
   <style>
-    body {
-      font-family: "Tajawal", sans-serif;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: #fff;
-      text-align: center;
-      margin: 0;
-      padding: 0;
+    :root{
+      --bg:#0b1220; --panel:#0f1a2c; --soft:#14243a; --text:#e8f7ee; --muted:#bfead2;
+      --accent:#16a34a; --accent2:#34d399; --danger:#ef4444; --ring:#073b20;
     }
-    header {
-      padding: 20px;
-      font-size: 1.5em;
-      font-weight: bold;
+    *{box-sizing:border-box}
+    body{margin:0; font-family: "Tajawal", system-ui, -apple-system, "Segoe UI", Arial;
+         color:var(--text);
+         background: radial-gradient(1100px 600px at 50% -200px,#123a2d 0%,#0b1220 60%);
+         min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:16px}
+    .wrap{width:100%; max-width:950px}
+    header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+    .brand{display:flex; align-items:center; gap:10px}
+    .logo{width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
+          background:linear-gradient(135deg,var(--accent),var(--accent2));}
+    h1{margin:0; font-size:20px}
+    .slogan{color:var(--muted); font-size:13px}
+
+    .grid{display:grid; gap:14px; grid-template-columns: 1.2fr 1fr}
+    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+
+    .card{background:linear-gradient(180deg,var(--panel),#0d1726);
+          border:1px solid #183349; border-radius:16px; padding:16px}
+    .controls{display:grid; gap:12px}
+    .row{display:flex; align-items:center; gap:10px}
+    label{font-weight:600; font-size:14px}
+    input[type="text"]{width:100%; background:#0e1c2e; border:1px solid #1a3248; border-radius:10px;
+                       padding:10px 12px; color:var(--text); outline:none}
+    input::placeholder{color:#90b9a5}
+
+    .range{
+      appearance:none; width:100%; height:8px; border-radius:999px; outline:none;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
     }
-    .timer-box {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      padding: 20px;
-      margin: 20px auto;
-      width: 90%;
-      max-width: 400px;
+    .range::-webkit-slider-thumb{
+      -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%;
+      background:#061b10; border:3px solid #8bf3c2; cursor:pointer;
+      box-shadow:0 0 0 3px rgba(52,211,153,.2);
     }
-    label {
-      font-size: 1.1em;
-      display: block;
-      margin: 15px 0 5px;
+
+    .hint{color:#b7e8cf; font-size:13px; text-align:center; margin-top:4px}
+
+    .garden{
+      position:relative; display:grid; place-items:center; min-height:380px;
+      background: radial-gradient(600px 350px at 50% -120px, #0f2b20 0%, #0b1521 70%);
+      border:1px solid #153a2a; border-radius:14px; overflow:hidden;
     }
-    input {
-      padding: 8px;
-      border-radius: 8px;
-      border: none;
-      font-size: 1em;
-      margin-bottom: 10px;
+    canvas{display:block}
+    .timer-ring{position:absolute; width:260px; height:260px; display:grid; place-items:center}
+    .seed{font-size:44px; transform: translateY(-4px)}
+    .time{position:absolute; color:#eafff0; font-weight:800; font-size:34px; text-shadow:0 1px 2px #000}
+    .left-text{position:absolute; bottom:18px; color:#a6e7c8; font-size:14px}
+
+    .btns{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+    .btn{
+      border:1px solid #1a3248; background:#0e1a2c; color:var(--text);
+      padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700;
     }
-    button {
-      background: #2e8b57;
-      border: none;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 1em;
-      cursor: pointer;
-      margin: 10px;
-    }
-    button:hover {
-      background: #256d45;
-    }
-    .circle {
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      border: 8px solid #2e8b57;
-      margin: 20px auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2em;
-      font-weight: bold;
-    }
-    footer {
-      margin-top: 20px;
-      font-size: 0.9em;
-      opacity: 0.8;
-    }
+    .btn.green{background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#062316; border:0}
+    .btn.red{background:#2a0e12; border-color:#7f1d1d; color:#ffc9c9}
+    .state{color:#c9ffe6; font-size:13px}
+
+    /* النهاية (المودال) */
+    .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.45)}
+    .dialog{width:min(560px,90vw); background:linear-gradient(180deg,#102236,#0c1a2b);
+            border:1px solid #27425c; border-radius:16px; padding:18px; text-align:center}
+    .dialog h2{margin:8px 0 6px}
+    .dialog p{color:#cfeadb; margin:0 0 10px}
+
+    footer{margin-top:10px; color:#a6e7c8; font-size:12px; text-align:center}
   </style>
 </head>
 <body>
-  <header>🌱 GrowTime — ازرع وقتك واحصد إنجازاتك</header>
+<div class="wrap">
 
-  <div class="timer-box">
-    <label for="duration">اختر مدة الجلسة:</label>
-    <input type="range" id="duration" min="5" max="120" value="25" step="5" oninput="updateLabel()">
-    <div id="duration-label">25 دقيقة</div>
+  <header>
+    <div class="brand">
+      <div class="logo">🌿</div>
+      <div>
+        <h1>GrowTime — ازرع وقتك واحصد إنجازاتك</h1>
+        <div class="slogan">اختر مدة وابدأ الجلسة — كل نجاح يزرع نبتة 🌱</div>
+      </div>
+    </div>
+  </header>
 
-    <label for="task">ما الذي ستُنجزه الآن؟ (اختياري)</label>
-    <input type="text" id="task" placeholder="مثال: مذاكرة / مراجعة / واجب">
+  <div class="grid">
+    <!-- الإعدادات -->
+    <div class="card">
+      <div class="controls">
+        <div>
+          <label>اختر مدة الجلسة:</label>
+          <input id="range" class="range" type="range" min="5" max="120" step="5" value="25" oninput="syncRange()">
+          <div class="row" style="justify-content:space-between">
+            <div style="color:#bfead2"><span id="mins">25</span> دقيقة</div>
+            <div class="state">الحالة: <b id="state">جاهز</b></div>
+          </div>
+        </div>
 
-    <div class="circle" id="timer">25:00</div>
+        <div>
+          <label>ما الذي ستُنجزه الآن؟ (اختياري)</label>
+          <input id="task" type="text" placeholder="مثال: مذاكرة / مراجعة / واجب">
+          <div class="hint">المستقبل لا يُختار، بل يُصنع بعاداتك — استمرّ وازرع وقتك 🌟</div>
+        </div>
 
-    <button onclick="startSession()">ابدأ الجلسة</button>
-    <button onclick="resetSession()">إعادة</button>
+        <div class="btns">
+          <button class="btn green" onclick="startTimer()">ابدأ الجلسة</button>
+          <button class="btn" onclick="pauseTimer()">إيقاف/استئناف</button>
+          <button class="btn red" onclick="resetTimer()">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- “الحديقة” + المؤقت الدائري -->
+    <div class="card garden">
+      <div class="timer-ring">
+        <canvas id="ring" width="260" height="260"></canvas>
+        <div class="seed">🌱</div>
+        <div class="time" id="time">25:00</div>
+      </div>
+      <div class="left-text">باقي <span id="left">25</span> دقيقة</div>
+    </div>
   </div>
 
-  <footer id="quote">المستقبل لا يُختار، بل يُصنع بعاداتك 🌟</footer>
+  <footer>البيانات تُحفَظ محليًا في متصفحك — لا نطلب أي معلومات خاصة.</footer>
+</div>
 
-  <script>
-    let timerInterval;
-    let timeLeft = 25 * 60;
+<!-- نافذة نهاية الجلسة -->
+<div id="doneModal" class="modal">
+  <div class="dialog">
+    <h2>🎉 مبروك! أنجزت جلستك</h2>
+    <p>استمرّ — ازرع وقتك … واحصد إنجازاتك!<br>كل إنجاز يضيف زهرة جديدة إلى حديقتك.</p>
+    <div class="btns" style="justify-content:center">
+      <button class="btn green" onclick="closeDone(true)">اغرسِ جديدة</button>
+      <button class="btn" onclick="closeDone(false)">إغلاق</button>
+    </div>
+  </div>
+</div>
 
-    function updateLabel() {
-      const val = document.getElementById("duration").value;
-      document.getElementById("duration-label").textContent = val + " دقيقة";
-      document.getElementById("timer").textContent = val + ":00";
-      timeLeft = val * 60;
-    }
+<script>
+  // الحالة العامة
+  let total = 25*60, left = total, tick = null, paused = false;
 
-    function startSession() {
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          alert("🎉 مبروك! أنجزت جلستك.\nاستمر — ازرع وقتك، واحصد إنجازاتك!");
-        } else {
-          timeLeft--;
-          const minutes = Math.floor(timeLeft / 60);
-          const seconds = timeLeft % 60;
-          document.getElementById("timer").textContent =
-            (minutes < 10 ? "0" : "") + minutes + ":" +
-            (seconds < 10 ? "0" : "") + seconds;
-        }
-      }, 1000);
-    }
+  const ring = document.getElementById('ring');
+  const ctx  = ring.getContext('2d');
+  const R = 110, CX = 130, CY = 130;
 
-    function resetSession() {
-      clearInterval(timerInterval);
-      const val = document.getElementById("duration").value;
-      timeLeft = val * 60;
-      document.getElementById("timer").textContent = val + ":00";
-    }
+  function draw(progress){ // progress: 0..1
+    ctx.clearRect(0,0,ring.width,ring.height);
+    // الخلفية (حلقة)
+    ctx.beginPath();
+    ctx.arc(CX,CY,R,0,Math.PI*2);
+    ctx.strokeStyle = '#0b3a20';
+    ctx.lineWidth = 18;
+    ctx.stroke();
+    // التقدّم
+    ctx.beginPath();
+    ctx.arc(CX,CY,R, -Math.PI/2, -Math.PI/2 + Math.PI*2*progress);
+    const grad = ctx.createLinearGradient(0,0,260,0);
+    grad.addColorStop(0,'#16a34a');
+    grad.addColorStop(1,'#34d399');
+    ctx.strokeStyle = grad;
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 18;
+    ctx.stroke();
+  }
 
-    // تسجيل Service Worker
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
-    }
-  </script>
+  function fmt(s){
+    const m = Math.floor(s/60), r = s%60;
+    return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;
+  }
+
+  function syncRange(){
+    const v = +document.getElementById('range').value;
+    total = v*60; left = total; paused = false;
+    document.getElementById('mins').textContent = v;
+    document.getElementById('left').textContent = v;
+    document.getElementById('time').textContent = fmt(total);
+    document.getElementById('state').textContent = 'جاهز';
+    draw(0);
+  }
+
+  function startTimer(){
+    clearInterval(tick);
+    paused = false;
+    document.getElementById('state').textContent = 'قيد التنفيذ';
+    tick = setInterval(()=>{
+      if(paused) return;
+      left--;
+      const p = 1 - (left/total);
+      draw(p);
+      document.getElementById('time').textContent = fmt(left);
+      document.getElementById('left').textContent = Math.max(0, Math.ceil(left/60));
+      if(left<=0){
+        clearInterval(tick);
+        document.getElementById('state').textContent = 'اكتملت';
+        showDone();
+      }
+    },1000);
+  }
+
+  function pauseTimer(){
+    if(!tick) return;
+    paused = !paused;
+    document.getElementById('state').textContent = paused ? 'مُوقّف مؤقتًا' : 'قيد التنفيذ';
+  }
+
+  function resetTimer(){
+    clearInterval(tick); tick=null; paused=false;
+    left = total;
+    document.getElementById('state').textContent = 'جاهز';
+    document.getElementById('time').textContent = fmt(total);
+    document.getElementById('left').textContent = Math.ceil(total/60);
+    draw(0);
+  }
+
+  function showDone(){ document.getElementById('doneModal').style.display='grid'; }
+  function closeDone(startNew){
+    document.getElementById('doneModal').style.display='none';
+    if(startNew){ syncRange(); startTimer(); }
+  }
+
+  // بداية
+  syncRange();
+  draw(0);
+
+  // تفعيل PWA (منفصل عن الصفحة)
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }
+</script>
 </body>
 </html>
 {
@@ -141,38 +244,31 @@
   "short_name": "GrowTime",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#1e3c72",
-  "theme_color": "#2e8b57",
+  "background_color": "#0b1220",
+  "theme_color": "#16a34a",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
-self.addEventListener("install", e => {
+self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open("growtime-cache").then(cache => {
-      return cache.addAll([
+    caches.open("growtime-v1").then((cache) =>
+      cache.addAll([
         "index.html",
         "manifest.json",
         "icon-192.png",
         "icon-512.png"
-      ]);
-    })
+      ])
+    )
+  );
+});
+self.addEventListener("fetch", (e) => {
+  e.respondWith(
+    caches.match(e.request).then((res) => res || fetch(e.request))
   );
 });
 
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(response => {
-      return response || fetch(e.request);
-    })
-  );
-});
+
+  
+
